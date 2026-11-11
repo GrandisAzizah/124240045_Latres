@@ -15,7 +15,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isObscured = true;
+
+  // variabel buat liat password
+  bool _isPasswordObscured = true;
+  bool _isConfirmObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Input Password
                 TextField(
                   controller: _passwordController,
-                  obscureText: _isObscured,
+                  obscureText: _isPasswordObscured,
                   style: GoogleFonts.spaceGrotesk(color: AppTheme.textColor),
                   decoration:
                       _inputDecoration(
@@ -76,22 +79,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ).copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isObscured
+                            _isPasswordObscured
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                             color: AppTheme.textSecondary,
                           ),
-                          onPressed: () =>
-                              setState(() => _isObscured = !_isObscured),
+                          onPressed: () => setState(
+                            () => _isPasswordObscured = !_isPasswordObscured,
+                          ),
                         ),
                       ),
+                ),
+                const SizedBox(height: 8),
+                // Guide for password requirements
+                Text(
+                  "Min. 8 chars, contain letters, numbers, & symbols.",
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 20),
 
                 // Konfirmasi Password
                 TextField(
                   controller: _confirmPasswordController,
-                  obscureText: _isObscured,
+                  obscureText: _isConfirmObscured,
                   style: GoogleFonts.spaceGrotesk(color: AppTheme.textColor),
                   decoration:
                       _inputDecoration(
@@ -100,19 +113,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ).copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isObscured
+                            _isConfirmObscured
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                             color: AppTheme.textSecondary,
                           ),
-                          onPressed: () =>
-                              setState(() => _isObscured = !_isObscured),
+                          onPressed: () => setState(
+                            () => _isConfirmObscured = !_isConfirmObscured,
+                          ),
                         ),
                       ),
                 ),
                 const SizedBox(height: 32),
 
-                // --- TOMBOL REGISTER (Putih) ---
+                // --- TOMBOL REGISTER ---
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
@@ -128,26 +142,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       String pass = _passwordController.text.trim();
                       String confirm = _confirmPasswordController.text.trim();
 
+                      // Cek apakah sudah terisi semua field
                       if (name.isEmpty || pass.isEmpty || confirm.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Semua kolom harus diisi!'),
-                            backgroundColor: Color.fromARGB(255, 179, 12, 0),
-                          ),
+                        _showError('All fields are required!');
+                        return;
+                      }
+
+                      // Cek Panjang Minimal 8 Karakter
+                      if (pass.length < 8) {
+                        _showError(
+                          'Password must be at least 8 characters long!',
                         );
                         return;
                       }
 
+                      // Cek Kombinasi Huruf, Angka, Simbol (Regex)
+                      final regex = RegExp(
+                        r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_]).+$',
+                      );
+                      if (!regex.hasMatch(pass)) {
+                        _showError(
+                          'Password must contain letters, numbers, and special characters!',
+                        );
+                        return;
+                      }
+
+                      // Cek Konfirmasi Password Cocok
                       if (pass != confirm) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Password tidak cocok!'),
-                            backgroundColor: Color.fromARGB(255, 179, 12, 0),
-                          ),
-                        );
+                        _showError('Passwords do not match!');
                         return;
                       }
 
+                      // Simpan ke Database
                       int userId = await DatabaseHelper().registerUser(
                         name,
                         pass,
@@ -157,21 +183,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Welcome, Explorer! Heads to Login.'),
-                            backgroundColor: AppTheme.cardColor, // Snackbar
+                            content: Text('Welcome, Explorer!'),
+                            backgroundColor: AppTheme.cardColor,
                           ),
                         );
                         Navigator.pop(context);
                       } else {
                         if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Fill everything correctly and try again!',
-                            ),
-                            backgroundColor: Color.fromARGB(255, 179, 12, 0),
-                          ),
-                        );
+                        _showError('Registration failed, please try again!');
                       }
                     },
                     child: Text(
@@ -218,14 +237,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // snackbar
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.spaceGrotesk(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: const Color(0xFF8B0000),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
       labelStyle: GoogleFonts.spaceGrotesk(color: AppTheme.textSecondary),
-      prefixIcon: Icon(
-        icon,
-        color: AppTheme.textSecondary,
-      ), // Ikon jadi Abu-abu
+      prefixIcon: Icon(icon, color: AppTheme.textSecondary),
       filled: true,
       fillColor: AppTheme.cardColor,
       contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -239,10 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: AppTheme.textColor,
-          width: 2,
-        ), // Border fokus Putih
+        borderSide: const BorderSide(color: AppTheme.textColor, width: 2),
       ),
     );
   }

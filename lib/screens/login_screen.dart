@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import '../services/auth_service.dart';
+import '../services/database_helper.dart';
 import '../theme/app_theme.dart';
 import 'register_screen.dart';
 import 'main_screen.dart';
@@ -146,19 +149,53 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 54,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.bgColor, // Hijau Tua
+                      backgroundColor: AppTheme.bgColor,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainScreen(),
-                        ),
+                    onPressed: () async {
+                      String name = _nameController.text.trim();
+                      String pass = _passwordController.text.trim();
+
+                      // 1. Validasi jika kosong
+                      if (name.isEmpty || pass.isEmpty) {
+                        _showSnackbar(
+                          context,
+                          'Name and Secret Code cannot be empty!',
+                          isError: true,
+                        );
+                        return;
+                      }
+
+                      // 2. Cek ke Database SQLite
+                      bool isValid = await DatabaseHelper().loginUser(
+                        name,
+                        pass,
                       );
+
+                      if (isValid) {
+                        // 3. Jika valid, simpan sesi ke Shared Preferences
+                        await AuthService.setLoggedIn(true);
+
+                        if (!context.mounted) return;
+
+                        // 4. Pindah ke halaman utama
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MainScreen(),
+                          ),
+                        );
+                      } else {
+                        if (!context.mounted) return;
+                        _showSnackbar(
+                          context,
+                          'Incorrect Name or Secret Code!',
+                          isError: true,
+                        );
+                      }
                     },
                     child: Text(
                       "Enter Realm",
@@ -207,4 +244,29 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+}
+
+// Fungsi bantuan untuk menampilkan Snackbar
+void _showSnackbar(
+  BuildContext context,
+  String message, {
+  bool isError = false,
+}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.spaceGrotesk(
+          color: isError ? Colors.white : AppTheme.bgColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      backgroundColor: isError
+          ? const Color(0xFF8B0000)
+          : AppTheme.textColor,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      duration: const Duration(seconds: 2),
+    ),
+  );
 }
