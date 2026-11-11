@@ -1,2 +1,3 @@
-# 124240045_Latres
-Latres Praktikum Mobile
+# flutter_application_1
+
+A new Flutter project.
