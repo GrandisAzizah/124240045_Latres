@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../models/character.dart';
 import '../theme/app_theme.dart';
-
-import 'package:provider/provider.dart';
-
 import '../providers/favorite_provider.dart';
 
 class DetailScreen extends StatelessWidget {
@@ -18,10 +16,12 @@ class DetailScreen extends StatelessWidget {
     final isFav = context.watch<FavoriteProvider>().isFavorite(
       character.id.toString(),
     );
+
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       appBar: AppBar(
         backgroundColor: AppTheme.bgColor,
+        elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.textColor),
         title: Text(
           character.name,
@@ -34,13 +34,28 @@ class DetailScreen extends StatelessWidget {
           IconButton(
             icon: Icon(
               isFav ? Icons.favorite : Icons.favorite_border,
-              color: isFav
-                  ? AppTheme.textSecondary
-                  : AppTheme.textColor.withValues(alpha: 0.6),
+              // Warna: Hitam kalau aktif, Abu-abu kalau tidak aktif
+              color: isFav ? AppTheme.textColor : AppTheme.textSecondary,
             ),
             onPressed: () {
+              // Toggle Favorit
               context.read<FavoriteProvider>().toggleFavorite(
                 character.id.toString(),
+              );
+
+              // Tampilkan Snackbar
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isFav
+                        ? '${character.name} removed from favorite'
+                        : '${character.name} added to favorite',
+                    style: GoogleFonts.spaceGrotesk(color: AppTheme.bgColor),
+                  ),
+                  backgroundColor: AppTheme.textColor,
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             },
           ),
@@ -86,7 +101,6 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
-  // Widget bantuan untuk baris info
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -99,7 +113,7 @@ class DetailScreen extends StatelessWidget {
               label,
               style: GoogleFonts.spaceGrotesk(
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textColor.withValues(alpha: 0.6),
+                color: AppTheme.textSecondary,
               ),
             ),
           ),
@@ -108,7 +122,7 @@ class DetailScreen extends StatelessWidget {
               value,
               style: GoogleFonts.spaceGrotesk(
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textColor,
+                color: AppTheme.textColor, // fav hitam
               ),
             ),
           ),
