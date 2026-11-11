@@ -209,7 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           .watch<FavoriteProvider>()
                           .isFavorite(char.id.toString());
 
-                      // --- garis pemisah---
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 8.0,
@@ -219,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
-                        ), // Gambar kotak
+                        ),
                         title: Text(
                           char.name,
                           style: GoogleFonts.spaceGrotesk(
@@ -242,8 +241,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : AppTheme.textSecondary,
                           ),
                           onPressed: () {
+                            // Logika tambah/hapus favorit
                             context.read<FavoriteProvider>().toggleFavorite(
                               char.id.toString(),
+                            );
+
+                            // snackbar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isFav
+                                      ? '${char.name} removed from favorite'
+                                      : '${char.name} added to favorite',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    color: AppTheme.bgColor,
+                                  ),
+                                ),
+                                backgroundColor: AppTheme.textColor,
+                                duration: const Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
                             );
                           },
                         ),
