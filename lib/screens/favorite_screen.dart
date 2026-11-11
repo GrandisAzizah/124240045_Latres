@@ -116,7 +116,13 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('${char.name} dihapus dari favorit'),
+                        content: Text(
+                          '${char.name} removed from favorite',
+                          style: GoogleFonts.spaceGrotesk(
+                            color: AppTheme.textColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         backgroundColor: AppTheme.veryLightGrey,
                       ),
                     );
