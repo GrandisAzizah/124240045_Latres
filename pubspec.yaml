@@ -1,6 +1,6 @@
 name: flutter_application_1
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0+1
 
 environment:
@@ -9,6 +9,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  google_fonts: ^6.1.0 # Untuk font (Space Grotesk)
+  http: ^1.2.0 # Untuk fetch data dari API
+  shared_preferences: ^2.2.2 # Untuk menyimpan status login & favorit
+  sqflite: ^2.3.0 # Untuk local database (Register/Login)
+  path: ^1.8.3 # Untuk mengakses file path SQLite
+  provider: ^6.1.1 # Untuk state management
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/rick.png
